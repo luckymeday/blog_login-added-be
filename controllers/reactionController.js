@@ -1,9 +1,10 @@
 const utilsHelper = require("../helpers/utils.helper");
 const Reaction = require("../models/reaction");
+const { catchAsync, AppError, sendResponse } = utilsHelper;
 const reactionController = {};
 
-reactionController.saveReaction = async (req, res, next) => {
-  try {
+reactionController.saveReaction = catchAsync( async (req, res, next) => {
+  // try {
     const { targetType, target, emoji } = req.body;
     // Find the reaction of the current user
     let reaction = await Reaction.findOne({
@@ -44,9 +45,9 @@ reactionController.saveReaction = async (req, res, next) => {
         );
       }
     }
-  } catch (error) {
-    next(error);
-  }
-};
+  // } catch (error) {
+  //   next(error);
+  // }
+  });
 
 module.exports = reactionController;
