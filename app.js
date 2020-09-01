@@ -42,22 +42,43 @@ app.use("/api", indexRouter);
 
 // catch 404 and forard to error handler
 app.use((req, res, next) => {
-  const err = new Error("Not Found");
+  const err = new Error("URL not Found");
   err.statusCode = 404;
   next(err);
 });
 
 /* Initialize Error Handling */
+// app.use((err, req, res, next) => {
+//   console.log("ERROR", err);
+//   return utilsHelper.sendResponse(
+//     res,
+//     err.statusCode ? err.statusCode : 500,
+//     false,
+//     null,
+//     [{ message: err.message }],
+//     null
+//   );
+// });
 app.use((err, req, res, next) => {
-  console.log("ERROR", err);
-  return utilsHelper.sendResponse(
-    res,
-    err.statusCode ? err.statusCode : 500,
-    false,
-    null,
-    [{ message: err.message }],
-    null
-  );
+  if (process.env.ENV_MODE === "development") {
+    return utilsHelper.sendResponse(
+      res,
+      err.statusCode ? err.statusCode : 500,
+      false,
+      null,
+      err.stack,
+      err.message
+    );
+  } else {
+    return utilsHelper.sendResponse(
+      res,
+      err.statusCode ? err.statusCode : 500,
+      false,
+      null,
+      null,
+      err.message
+    );
+  }
 });
 
 module.exports = app;

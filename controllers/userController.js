@@ -1,8 +1,9 @@
 const utilsHelper = require("../helpers/utils.helper");
 const User = require("../models/user");
 const Friendship = require("../models/friendship");
-const bcrypt = require("bcryptjs");
+// const bcrypt = require("bcryptjs");
 const userController = {};
+const jwt = require("jsonwebtoken");
 
 userController.register = async (req, res, next) => {
   try {
@@ -10,8 +11,8 @@ userController.register = async (req, res, next) => {
     let user = await User.findOne({ email });
     if (user) return next(new Error("User already exists"));
 
-    const salt = await bcrypt.genSalt(10);
-    password = await bcrypt.hash(password, salt);
+    // const salt = await bcrypt.genSalt(10);
+    // password = await bcrypt.hash(password, salt);
     user = await User.create({
       name,
       email,
@@ -70,12 +71,12 @@ userController.sendFriendRequest = async (req, res, next) => {
     } else {
       switch (friendship.status) {
         case "requesting":
-          return next(new Error("The request has been sent"));
+          return next(new Error("The request has already been sent"));
           break;
         case "accepted":
           return next(new Error("Users are already friend"));
           break;
-        case "accepted":
+        // case "accepted":
         case "decline":
         case "cancel":
           friendship.status = "requesting";
@@ -86,9 +87,9 @@ userController.sendFriendRequest = async (req, res, next) => {
             true,
             null,
             null,
-            "Request has ben sent"
+            "Request has been sent"
           );
-          break;
+        // break;
         default:
           break;
       }
@@ -249,6 +250,105 @@ userController.removeFriendship = async (req, res, next) => {
       null,
       null,
       "Friendship has been removed"
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+userController.forgetPassword = async (req, res, next) => {
+  try {
+    // get email from request
+    const email = req.params.email;
+    if (!email) {
+      return next(new Error("Email is required"));
+    }
+    // get user doc from database
+    const user = await User.findOne({ email });
+    if (!user) {
+      return utilsHelper.sendResponse(
+        res,
+        200,
+        true,
+        null,
+        null,
+        "You will receive an email in your registered email address"
+      );
+    }
+    // generate a jwt (include userID)
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY, {
+      expiresIn: "15m",
+    });
+
+    // SEND EMAIL
+    const API_KEY = process.env.MAILGUN_API;
+    const DOMAIN = process.env.MAILGUN_DOMAIN;
+    const mailgun = require("mailgun-js")({ apiKey: API_KEY, domain: DOMAIN });
+    const data = {
+      from: "khoa <damanhkhoa@gmail.com>",
+      to: user.email,
+      subject: "Reset password confirmation",
+      html: `click <a href="http://localhost:5000/email/${token}">here</a> to reset password`,
+    };
+    mailgun.messages().send(data, (error, body) => {
+      console.log(body);
+      return next(body);
+    });
+
+    // send email with token to user email
+    return utilsHelper.sendResponse(
+      res,
+      200,
+      true,
+      null,
+      null,
+      "You will receive an email in your registered email address"
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+userController.resetPassword = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password)
+      return next(new Error("token and password are require"));
+    // verify token
+    const payload = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    // payload._id=userid
+    // update password
+    const user = await User.findById(payload._id);
+    user.password = password;
+    await user.save();
+    res.send(user);
+
+    // update password
+  } catch (error) {
+    return next(error);
+  }
+};
+
+userController.updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    // const profile = await User.findOne({ _id: userId, isDeleted: false });
+    const user = await User.findById(userId);
+    const allows = ["name", "age", "description", "address", "password"];
+    allows.forEach((element) => {
+      if (req.body[element]) {
+        user[element] = req.body[element];
+      }
+    });
+    await user.save();
+
+    return utilsHelper.sendResponse(
+      res,
+      200,
+      true,
+      { user },
+      null,
+      "Profile updated"
     );
   } catch (error) {
     next(error);

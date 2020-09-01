@@ -12,4 +12,20 @@ utilsHelper.sendResponse = (res, status, success, data, errors, message) => {
   return res.status(status).json(response);
 };
 
+class AppError extends Error {
+  constructor(statusCode, message) {
+    super(message); // inherited from built in ERROR class
+    this.statusCode = statusCode;
+    this.success = `${statusCode}`.startsWith("4") ? false : true;
+    // create a stack trace for debugging (Error obj, void obj to avoid stack polution)
+    Error.captureStackTrace(this, this.constructor); // => error.stack
+  }
+}
+
+utilsHelper.catchAsync = (func) => {
+  // return (req, res, next) => func(req, res, next).catch(err => next(err))
+  //  for catch() if you simply call another func like below, it will automatically pass the only parameter to the func
+  return (req, res, next) => func(req, res, next).catch(next); // not executing the func
+};
+
 module.exports = utilsHelper;
