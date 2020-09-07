@@ -57,8 +57,9 @@ authController.loginWithGoogle = catchAsync(async (req, res, next) => {
   const googleToken = req.params.token;
   console.log("googleToken:", googleToken);
   const response = await axios.get(
-    `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${googleToken}`
+    ` https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleToken} `
   );
+  console.log(response.data);
 
   const { name, email } = response.data;
   let user = await User.findOne({ email });
