@@ -18,4 +18,18 @@ router.post(
   authController.loginWithEmail
 );
 
+/**
+ * @route POST api/auth/login/facebook/:token
+ * @description Login
+ * @access Public
+ */
+router.get("/login/facebook/:token", authController.loginWithFacebook);
+
+/**
+ * @route POST api/auth/login/google/:token
+ * @description Login
+ * @access Public
+ */
+router.get("/login/google/:token", authController.loginWithGoogle);
+
 module.exports = router;

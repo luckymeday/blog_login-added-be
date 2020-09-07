@@ -15,7 +15,7 @@ reviewController.createNewReview = catchAsync(async (req, res, next) => {
     content,
   });
 
-  return utilsHelper.sendResponse(
+  return sendResponse(
     res,
     200,
     true,
@@ -43,14 +43,7 @@ reviewController.getReviewsOfBlog = catchAsync(async (req, res, next) => {
     .skip(offset)
     .limit(limit);
 
-  return utilsHelper.sendResponse(
-    res,
-    200,
-    true,
-    { reviews, totalPages },
-    null,
-    ""
-  );
+  return sendResponse(res, 200, true, { reviews, totalPages }, null, "");
   // } catch (error) {
   //   next(error);
   // }
@@ -69,14 +62,7 @@ reviewController.updateSingleReview = catchAsync(async (req, res, next) => {
   );
   if (!review)
     return next(new AppError(401, "Review not found or User not authorized"));
-  return utilsHelper.sendResponse(
-    res,
-    200,
-    true,
-    review,
-    null,
-    "Update successful"
-  );
+  return sendResponse(res, 200, true, review, null, "Update successful");
   // } catch (error) {
   //   next(error);
   // }
@@ -93,14 +79,7 @@ reviewController.deleteSingleReview = catchAsync(async (req, res, next) => {
   });
   if (!review)
     return next(new AppError(401, "Review not found or User not authorized"));
-  return utilsHelper.sendResponse(
-    res,
-    200,
-    true,
-    null,
-    null,
-    "Delete successful"
-  );
+  return sendResponse(res, 200, true, null, null, "Delete successful");
   // } catch (error) {
   //   next(error);
   // }

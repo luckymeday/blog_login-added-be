@@ -1,16 +1,16 @@
 const utilsHelper = require("../helpers/utils.helper");
 const User = require("../models/user");
-const Friendship = require("../models/friendship");
-// const bcrypt = require("bcryptjs");
 const userController = {};
 const jwt = require("jsonwebtoken");
 const { catchAsync, AppError, sendResponse } = utilsHelper;
+const Friendship = require("../models/friendship");
+// const bcrypt = require("bcryptjs");
 
 userController.register = catchAsync(async (req, res, next) => {
   // try {
   let { name, email, password } = req.body;
   let user = await User.findOne({ email });
-  if (user) return next(new Error("User already exists"));
+  if (user) return next(new AppError("User already exists"));
 
   // const salt = await bcrypt.genSalt(10);
   // password = await bcrypt.hash(password, salt);
@@ -20,7 +20,7 @@ userController.register = catchAsync(async (req, res, next) => {
     password,
   });
   const accessToken = await user.generateToken();
-  return utilsHelper.sendResponse(
+  return sendResponse(
     res,
     200,
     true,
@@ -37,7 +37,7 @@ userController.getCurrentUser = catchAsync(async (req, res, next) => {
   // try {
   const userId = req.userId;
   const user = await User.findById(userId);
-  return utilsHelper.sendResponse(
+  return sendResponse(
     res,
     200,
     true,
@@ -61,14 +61,7 @@ userController.sendFriendRequest = catchAsync(async (req, res, next) => {
       to: toUserId,
       status: "requesting",
     });
-    return utilsHelper.sendResponse(
-      res,
-      200,
-      true,
-      null,
-      null,
-      "Request has ben sent"
-    );
+    return sendResponse(res, 200, true, null, null, "Request has ben sent");
   } else {
     switch (friendship.status) {
       case "requesting":
@@ -82,7 +75,7 @@ userController.sendFriendRequest = catchAsync(async (req, res, next) => {
       case "cancel":
         friendship.status = "requesting";
         await friendship.save();
-        return utilsHelper.sendResponse(
+        return sendResponse(
           res,
           200,
           true,
@@ -100,7 +93,7 @@ userController.sendFriendRequest = catchAsync(async (req, res, next) => {
   // }
 });
 
-userController.acceptFriendRequest = catchAysnc(async (req, res, next) => {
+userController.acceptFriendRequest = catchAsync(async (req, res, next) => {
   // try {
   const userId = req.userId; // To
   const fromUserId = req.params.id; // From
@@ -113,7 +106,7 @@ userController.acceptFriendRequest = catchAysnc(async (req, res, next) => {
 
   friendship.status = "accepted";
   await friendship.save();
-  return utilsHelper.sendResponse(
+  return sendResponse(
     res,
     200,
     true,
@@ -139,7 +132,7 @@ userController.declineFriendRequest = catchAsync(async (req, res, next) => {
 
   friendship.status = "decline";
   await friendship.save();
-  return utilsHelper.sendResponse(
+  return sendResponse(
     res,
     200,
     true,
@@ -159,7 +152,7 @@ userController.getSentFriendRequestList = catchAsync(async (req, res, next) => {
     from: userId,
     status: "requesting",
   }).populate("to");
-  return utilsHelper.sendResponse(res, 200, true, requestList, null, null);
+  return sendResponse(res, 200, true, requestList, null, null);
   // } catch (error) {
   //   next(error);
   // }
@@ -173,7 +166,7 @@ userController.getReceivedFriendRequestList = catchAsync(
       to: userId,
       status: "requesting",
     }).populate("from");
-    return utilsHelper.sendResponse(res, 200, true, requestList, null, null);
+    return sendResponse(res, 200, true, requestList, null, null);
     // } catch (error) {
     //   next(error);
     // }
@@ -199,7 +192,7 @@ userController.getFriendList = catchAsync(async (req, res, next) => {
     }
     return friend;
   });
-  return utilsHelper.sendResponse(res, 200, true, friendList, null, null);
+  return sendResponse(res, 200, true, friendList, null, null);
   // } catch (error) {
   //   next(error);
   // }
@@ -218,7 +211,7 @@ userController.cancelFriendRequest = catchAsync(async (req, res, next) => {
 
   friendship.status = "cancel";
   await friendship.save();
-  return utilsHelper.sendResponse(
+  return sendResponse(
     res,
     200,
     true,
@@ -246,7 +239,7 @@ userController.removeFriendship = catchAsync(async (req, res, next) => {
 
   friendship.status = "removed";
   await friendship.save();
-  return utilsHelper.sendResponse(
+  return sendResponse(
     res,
     200,
     true,
@@ -269,7 +262,7 @@ userController.forgetPassword = catchAsync(async (req, res, next) => {
   // get user doc from database
   const user = await User.findOne({ email });
   if (!user) {
-    return utilsHelper.sendResponse(
+    return sendResponse(
       res,
       200,
       true,
@@ -299,7 +292,7 @@ userController.forgetPassword = catchAsync(async (req, res, next) => {
   });
 
   // send email with token to user email
-  return utilsHelper.sendResponse(
+  return sendResponse(
     res,
     200,
     true,
@@ -345,14 +338,7 @@ userController.updateProfile = catchAsync(async (req, res, next) => {
   });
   await user.save();
 
-  return utilsHelper.sendResponse(
-    res,
-    200,
-    true,
-    { user },
-    null,
-    "Profile updated"
-  );
+  return sendResponse(res, 200, true, { user }, null, "Profile updated");
   // } catch (error) {
   //   next(error);
   // }

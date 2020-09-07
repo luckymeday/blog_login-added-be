@@ -11,7 +11,16 @@ const { body, param } = require("express-validator");
  * @access Public
  */
 router.get("/", blogController.getBlogs);
-
+/**
+ * @route GET api/blogs/me
+ * @description Get self blog
+ * @access Login required
+ */
+router.get(
+  "/me",
+  authMiddleware.loginRequired,
+  blogController.getSelfBlog
+);
 /**
  * @route GET api/blogs/:id
  * @description Get a single blog

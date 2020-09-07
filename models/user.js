@@ -4,15 +4,28 @@ const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 const Schema = mongoose.Schema;
 const bcrypt = require("bcryptjs");
 
-const userSchema = Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String },
-  friendCount: { type: Number, default: 0 },
-  isDeleted: { type: Boolean, default: false },
-});
+const userSchema = Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String },
+    friendCount: { type: Number, default: 0 },
+    isDeleted: { type: Boolean, default: false },
+  },
+  { toJSON: { virtuals: true }, toObject: { virtuals: true } }
+);
 
 userSchema.plugin(require("./plugins/isDeletedFalse"));
+
+userSchema.methods.toJSON = function () {
+  // console.log(this);
+  const user = this.toObject();
+  // console.log(user);
+  delete user.password;
+  delete user.__v;
+  delete user.isDeleted;
+  return user;
+};
 
 userSchema.methods.generateToken = async function () {
   const accessToken = await jwt.sign({ _id: this._id }, JWT_SECRET_KEY, {

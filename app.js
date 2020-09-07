@@ -19,7 +19,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 /* DB Connections */
-
 mongoose
   .connect(mongoURI, {
     // some options to deal with deprecated warning
@@ -40,7 +39,7 @@ app.use(express.static(path.join(__dirname, "public")));
 /* Initialize Routes */
 app.use("/api", indexRouter);
 
-// catch 404 and forard to error handler
+// catch 404 and forward to error handler
 app.use((req, res, next) => {
   const err = new Error("URL not Found");
   err.statusCode = 404;

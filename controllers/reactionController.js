@@ -14,7 +14,7 @@ reactionController.saveReaction = catchAsync( async (req, res, next) => {
     });
     if (!reaction) {
       await Reaction.create({ targetType, target, user: req.userId, emoji });
-      return utilsHelper.sendResponse(
+      return sendResponse(
         res,
         200,
         true,
@@ -25,7 +25,7 @@ reactionController.saveReaction = catchAsync( async (req, res, next) => {
     } else {
       if (reaction.emoji === emoji) {
         await Reaction.findOneAndDelete({ _id: reaction._id });
-        return utilsHelper.sendResponse(
+        return sendResponse(
           res,
           200,
           true,
@@ -35,7 +35,7 @@ reactionController.saveReaction = catchAsync( async (req, res, next) => {
         );
       } else {
         await Reaction.findOneAndUpdate({ _id: reaction._id }, { emoji });
-        return utilsHelper.sendResponse(
+        return sendResponse(
           res,
           200,
           true,
